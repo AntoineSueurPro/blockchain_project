@@ -68,6 +68,24 @@ async function loadBooks() {
     }
 }
 
+// Fonction pour annuler les transactions en attente
+async function cancelPendingTransactions() {
+    const pendingTransactions = await window.web3.eth.getBlockTransactionCount('pending');
+    for (let i = 0; i < pendingTransactions; i++) {
+        const tx = await window.web3.eth.getTransactionFromBlock('pending', i);
+        if (tx.from.toLowerCase() === window.userAddress.toLowerCase()) {
+            await window.web3.eth.sendTransaction({
+                from: window.userAddress,
+                to: window.userAddress,
+                value: 0,
+                nonce: tx.nonce,
+                gasPrice: '1',
+                gas: '21000'
+            });
+        }
+    }
+}
+
 // Fonction utilitaire pour créer un élément HTML représentant un livre
 function createBookElement(book, bookIndex, userPurchasedBooks) {
     let disabled = false;
@@ -105,7 +123,8 @@ function createBookElement(book, bookIndex, userPurchasedBooks) {
             return;
         }
         try {
-            await bookMarket.methods.buyBook(bookIndex).send({ from: window.userAddress, value: window.web3.utils.toWei(book[2], 'ether') })
+            await cancelPendingTransactions();
+            await bookMarket.methods.buyBook(bookIndex).send({ from: window.userAddress, value: window.web3.utils.toWei(book[2], 'ether') });
             const toastLiveExample = document.getElementById('liveToast')
             const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastLiveExample)
             toastBootstrap.show()
