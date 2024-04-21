@@ -64,7 +64,6 @@ async function loadBooks() {
         }
     } catch (error) {
         console.error('Error loading books:', error);
-        alert('Error occurred while loading books.');
     }
 }
 
@@ -119,17 +118,22 @@ function createBookElement(book, bookIndex, userPurchasedBooks) {
   </div>`;
     const buyButton = bookElement.querySelector('#buyButton');
     buyButton.addEventListener('click', async () => {
+
         if (disabled) {
             return;
         }
+        const modal = new bootstrap.Modal(document.getElementById('loadingModal'));
+        modal.show();
         try {
             await cancelPendingTransactions();
             await bookMarket.methods.buyBook(bookIndex).send({ from: window.userAddress, value: window.web3.utils.toWei(book[2], 'ether') });
+            modal.hide();
             const toastLiveExample = document.getElementById('liveToast')
             const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastLiveExample)
             toastBootstrap.show()
             loadBooks();
         } catch (error) {
+            modal.hide();
             console.error('Error purchasing book:', error);
             const toastLiveExample = document.getElementById('liveToastfail')
             const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastLiveExample)

@@ -65,7 +65,6 @@ async function loadOwnedBooks() {
         }
     } catch (error) {
         console.error('Error loading owned books:', error);
-        alert('Error occurred while loading owned books.');
     }
 }
 

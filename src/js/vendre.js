@@ -50,27 +50,37 @@ async function initApp() {
 // Fonction pour mettre un livre en vente
 async function sellBook(event) {
     event.preventDefault(); // Empêcher la soumission du formulaire
+    const modal = new bootstrap.Modal(document.getElementById('loadingModal'));
+    modal.show();
 
-    const title = document.getElementById('title').value;
-    const author = document.getElementById('author').value;
-    const price = document.getElementById('price').value;
-    const description = document.getElementById('description').value;
-    const file = document.getElementById('file').files[0];
-    const cover = document.getElementById('cover').files[0];
+    const title = document.getElementById('title')
+    const author = document.getElementById('author')
+    const price = document.getElementById('price')
+    const description = document.getElementById('description')
+    const file = document.getElementById('file');
+    const cover = document.getElementById('cover');
 
     // Ajouter le livre à la blockchain
     try {
-        const fileHash = await uploadFileToIPFS(file);
-        const coverHash = await uploadFileToIPFS(cover);
+        const fileHash = await uploadFileToIPFS(file.files[0]);
+        const coverHash = await uploadFileToIPFS(cover.files[0]);
         // Appeler la fonction du contrat pour ajouter un livre en vente
-        await bookMarket.methods.addBook(title, author, price, description, coverHash, fileHash).send({ from: window.userAddress });
+        await bookMarket.methods.addBook(title.value, author.value, price.value, description.value, coverHash, fileHash).send({ from: window.userAddress });
 
         // Actualiser la liste des livres après la vente
         await loadBooksForSale();
+        title.value = ""
+        author.value = ""
+        price.value = ""
+        description.value = ""
+        file.value = ""
+        cover.value = ""
+        modal.hide();
         const toastLiveExample = document.getElementById('liveToast')
         const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastLiveExample)
         toastBootstrap.show()
     } catch (error) {
+        modal.hide();
         console.error('Error while selling book:', error);
         const toastLiveExample = document.getElementById('liveToastfail')
         const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastLiveExample)
@@ -104,7 +114,6 @@ async function loadBooksForSale() {
         }
     } catch (error) {
         console.error('Error loading books for sale:', error);
-        alert('Error occurred while loading books for sale.');
     }
 }
 
